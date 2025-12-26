@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEC TechFest Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;900&family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+<style>
+    :root{ --bg:linear-gradient(135deg,#03071e,#0a1a5c,#123c8c); --glass:rgba(255,255,255,0.12); --gold:#ffd700; --neon:#6ee7ff; }
+    *{margin:0;padding:0;box-sizing:border-box;font-family:Poppins}
+    body{ background:var(--bg); color:#fff; min-height:100vh; }
+    header{ text-align:center; padding:15px 10px 0; }
+    header h1{ font-family:Orbitron; font-size:1.6rem; letter-spacing:3px; background:linear-gradient(#ffeaa7,#ffd700); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+    #mainTitle{ 
+        font-family:Orbitron; font-size:3.5rem; font-weight: 900; margin-top: -10px; margin-bottom:5px; 
+        text-align:center; background:linear-gradient(#ffffff,#6ee7ff); -webkit-background-clip:text; 
+        -webkit-text-fill-color:transparent; text-shadow:0 0 25px rgba(110,231,255,0.6); 
+    }
+    #eventDateDisplay{ text-align:center; font-family:Orbitron; color:var(--gold); margin-bottom:25px; font-size:1.1rem; letter-spacing:2px; }
+    section{ display:none; min-height:80vh; padding:20px; align-items:center; justify-content:center; flex-direction:column; }
+    section.active{ display:flex; }
+    .card{ background:var(--glass); backdrop-filter:blur(20px); padding:25px; border-radius:24px; width:100%; max-width:850px; border:1px solid rgba(255,255,255,0.2); box-shadow:0 20px 50px rgba(0,0,0,0.5); }
+    input, select{ width:100%; padding:12px; margin-top:10px; border-radius:12px; background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.3); color:#fff; outline:none; font-size:0.95rem; }
+    button{ width:100%; padding:14px; margin-top:12px; border:none; border-radius:12px; font-weight:700; cursor:pointer; transition:0.2s; font-size:1rem; }
+    button:hover{ transform:translateY(-2px); filter: brightness(1.1); }
+    .primary{ background:linear-gradient(90deg,#2563eb,#38bdf8); color:#fff; }
+    .secondary{ background:linear-gradient(90deg,#059669,#10b981); color:#fff; }
+    .gold{ background:linear-gradient(90deg,#ffd700,#ffb703); color:#000; }
+    .back{ background:rgba(255,255,255,0.1); color:#fff; }
+    .event-grid{ display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:12px; margin-top:15px; }
+    .event{ padding:15px; border-radius:15px; background:rgba(255,255,255,0.05); text-align:center; cursor:pointer; border:2px solid transparent; }
+    .event.selected{ border-color:var(--gold); background:rgba(255,215,0,0.15); }
+    .stats-bar{ display:flex; gap:10px; margin-bottom:15px; }
+    .stat-card{ flex:1; background:rgba(0,0,0,0.3); padding:10px; border-radius:10px; text-align:center; border:1px solid rgba(255,255,255,0.1); }
+    table{ width:100%; border-collapse:collapse; margin-top:15px; min-width:600px; }
+    th, td{ padding:10px; border-bottom:1px solid rgba(255,255,255,0.1); font-size:0.8rem; text-align:left; }
+    th{ color:var(--gold); text-transform:uppercase; font-size:0.75rem; }
+    .delete{ background:#ef4444; color:#fff; padding:4px 8px; border-radius:6px; font-size:0.7rem; }
+    
+    .ticket-container {
+        background: #fff; color: #1a1a1a; padding: 30px; border-radius: 20px;
+        position: relative; border-left: 10px solid var(--gold);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3); text-align: left;
+    }
+    .ticket-header { border-bottom: 2px dashed #ccc; padding-bottom: 15px; margin-bottom: 15px; }
+    .ticket-body p { margin: 10px 0; font-size: 1rem; }
+    .ticket-footer { margin-top: 20px; font-size: 0.75rem; color: #888; text-align: center; border-top: 1px solid #eee; padding-top: 10px; }
+
+    @media(max-width:600px){ #mainTitle{font-size:2.2rem} }
+</style>
+</head>
+<body>
+
+<header><h1>NARAYANA ENGINEERING COLLEGE</h1></header>
+
+<section id="landing" class="active">
+    <div class="card" style="max-width:450px">
+        <h2 id="mainTitle">FEST 2025</h2>
+        <div id="eventDateDisplay">Loading Date...</div>
+        <button class="secondary" onclick="go('facultyLogin')">👨‍🏫 Faculty Access</button>
+        <button class="primary" onclick="go('form')">🎓 Student Registration</button>
+    </div>
+</section>
+
+<section id="facultyLogin">
+    <div class="card" style="max-width:400px">
+        <h3 style="text-align:center">Faculty Authentication</h3>
+        <input id="facSessionName" placeholder="Your Name (Faculty Name)">
+        <input id="facPass" type="password" placeholder="Enter Access Password">
+        <button class="primary" onclick="facultyLogin()">Verify & Enter</button>
+        <button class="back" onclick="go('landing')">Back</button>
+    </div>
+</section>
+
+<section id="facultyPanel">
+    <div class="card">
+        <h3 id="facWelcome">Faculty Dashboard</h3>
+        <div style="margin-top:15px; border:1px solid rgba(255,255,255,0.1); padding:15px; border-radius:15px;">
+            <h4>Global Settings</h4>
+            <input id="editMain" placeholder="Fest Name (e.g. TECHFEST 2025)">
+            <input id="editDate" placeholder="Event Date (e.g. Jan 1, Wed)">
+            <h4 style="margin-top:10px">Event Titles</h4>
+            <div id="eventEdits" style="margin-top:5px; display:grid; grid-template-columns:1fr 1fr; gap:10px;"></div>
+            <button class="secondary" style="margin-top:15px" onclick="saveEventChanges()">Save All Changes</button>
+        </div>
+        <div class="stats-bar" style="margin-top:20px">
+            <div class="stat-card"><small>Total Registrations</small><h2 id="countSt">0</h2></div>
+        </div>
+        <input id="search" placeholder="🔍 Live Filter Roll/Name..." oninput="loadRegs()">
+        <div style="overflow-x:auto; max-height:250px;">
+            <table>
+                <thead><tr><th>Name</th><th>Roll</th><th>Events</th><th>Reference</th><th>Faculty</th><th>Action</th></tr></thead>
+                <tbody id="regTable"></tbody>
+            </table>
+        </div>
+        <button class="gold" onclick="exportCSV()">📥 Download CSV Report</button>
+        <button style="background:#dc2626; color:#fff" onclick="deleteAllRegs()">⚠️ Delete All Registrations</button>
+        <button class="back" onclick="go('landing')">Logout</button>
+    </div>
+</section>
+
+<section id="form">
+    <div class="card" style="max-width:450px">
+        <h3>Student Details</h3>
+        <input id="sname" placeholder="Student Full Name">
+        <input id="sroll" placeholder="Roll No (Must start with 24711)" oninput="this.value=this.value.toUpperCase()">
+        <select id="sbranch">
+            <option value="">Select Branch</option>
+            <option>CSE</option><option>AI</option><option>AIML</option><option>ECE</option><option>EEE</option><option>MECH</option><option>CIVIL</option>
+        </select>
+        <select id="syear">
+            <option value="">Select Year</option>
+            <option>1st Year</option><option>2nd Year</option><option>3rd Year</option><option>4th Year</option>
+        </select>
+        <button class="primary" onclick="toEvents()">Next: Select Events</button>
+        <button class="back" onclick="go('landing')">Back</button>
+    </div>
+</section>
+
+<section id="events">
+    <div class="card" style="max-width:550px">
+        <h3>Choose Your Events</h3>
+        <div class="event-grid" id="eventGrid"></div>
+        <div style="margin-top:20px; text-align:right">
+            <h3>Total: <span style="color:var(--gold)">₹<span id="total">0</span></span></h3>
+        </div>
+        <button class="primary" onclick="toPayment()">Proceed to Checkout</button>
+        <button class="back" onclick="go('form')">Back</button>
+    </div>
+</section>
+
+<section id="payment">
+    <div class="card" style="max-width:450px; text-align:center">
+        <h3>Payment Step</h3>
+        <p style="margin-bottom:15px">Total Payable: ₹<span id="payAmt">0</span></p>
+        <button class="gold" onclick="upiStart()">📱 Open UPI App</button>
+        <div id="upiFailMsg" style="display:none; color:#ff4d4d; font-weight:bold; margin-top:15px; padding:10px; border:1px solid #ff4d4d; border-radius:10px; background:rgba(255,0,0,0.1)">
+            You don't have a UPI app installed. Please register offline at the counter.
+        </div>
+        <div id="upiConfirmationBox" style="display:none; margin-top:15px; padding:15px; border:1px solid var(--neon); border-radius:15px;">
+            <p style="font-size:0.8rem">Enter Transaction ID (UTR) to finish:</p>
+            <input id="utr" placeholder="12 Digit ID">
+            <button class="secondary" onclick="upiConfirm()">Verify & Send SMS</button>
+        </div>
+        <p style="margin:15px 0; opacity:0.4">--- OR ---</p>
+        <button class="primary" onclick="cashPay()">💵 Cash Payment</button>
+        <button class="back" onclick="go('events')" style="border:none">Cancel</button>
+    </div>
+</section>
+
+<section id="success">
+    <div class="card" style="text-align:center; max-width:450px">
+        <h2 style="color:#10b981; margin-bottom:15px;">Registration Done!</h2>
+        <div id="ticket" class="ticket-container"></div>
+        <button class="secondary" onclick="window.print()">Print Ticket</button>
+        <button class="primary" onclick="location.reload()">Home</button>
+    </div>
+</section>
+
+<script>
+const SMS_NO = "9160479160";
+const UPI_ID = "8309749759@ybl";
+const FAC_PASS = "123456";
+
+// Updated with your requested format and emojis
+let config = JSON.parse(localStorage.getItem("festConfig")) || {
+    mainTitle: "TECHFEST 2025",
+    eventDate: "Jan 1, Wed",
+    events: ["Coding 💻", "Robotics 🤖", "Quiz 🧠", "Sports 🏆", "Gaming 🎮", "Hackathon 🚀"]
+};
+
+let student = {}, selected = [];
+document.getElementById("mainTitle").innerText = config.mainTitle;
+document.getElementById("eventDateDisplay").innerText = "EVENT DATE: " + config.eventDate;
+
+function go(id){
+    document.querySelectorAll("section").forEach(s=>s.classList.remove("active"));
+    document.getElementById(id).classList.add("active");
+    if(id==='events') renderEvents();
+    if(id==='payment') document.getElementById("payAmt").innerText = selected.length * 100;
+    if(id==='facultyPanel') loadRegs();
+}
+
+function facultyLogin(){
+    if(document.getElementById("facPass").value === FAC_PASS){
+        if(!document.getElementById("facSessionName").value) return alert("Enter Faculty Name");
+        document.getElementById("editMain").value = config.mainTitle;
+        document.getElementById("editDate").value = config.eventDate;
+        loadEventEdits();
+        go('facultyPanel');
+    } else alert("Wrong Password");
+}
+
+function loadEventEdits(){
+    const container = document.getElementById("eventEdits"); container.innerHTML = "";
+    config.events.forEach((ev, i) => {
+        const inp = document.createElement("input"); inp.value = ev; inp.id = "evInp" + i;
+        container.appendChild(inp);
+    });
+}
+
+function saveEventChanges(){
+    config.mainTitle = document.getElementById("editMain").value || config.mainTitle;
+    config.eventDate = document.getElementById("editDate").value || config.eventDate;
+    config.events.forEach((_, i) => { config.events[i] = document.getElementById("evInp" + i).value; });
+    localStorage.setItem("festConfig", JSON.stringify(config));
+    alert("Saved Successfully!");
+    location.reload();
+}
+
+function deleteAllRegs() {
+    if(confirm("Confirm Delete All?") && confirm("Final Warning!")) {
+        localStorage.setItem("regs", "[]"); loadRegs();
+    }
+}
+
+function toEvents(){
+    const roll = document.getElementById("sroll").value;
+    const name = document.getElementById("sname").value;
+    const branch = document.getElementById("sbranch").value;
+    const year = document.getElementById("syear").value;
+
+    if(!name || !roll || !branch || !year) return alert("Please fill all details including Year!");
+    if(!roll.startsWith("24711")) return alert("Roll number must start with 24711");
+    
+    student = { name, roll, branch, year };
+    go('events');
+}
+
+function renderEvents(){
+    const grid = document.getElementById("eventGrid"); grid.innerHTML = "";
+    config.events.forEach((e, i) => {
+        const div = document.createElement("div");
+        div.className = "event" + (selected.includes(i) ? " selected" : "");
+        div.innerHTML = `${e}<br><small>₹100</small>`;
+        div.onclick = () => {
+            if(selected.includes(i)) selected = selected.filter(x => x !== i);
+            else if(selected.length < 3) selected.push(i);
+            else return alert("Limit 3");
+            renderEvents(); document.getElementById("total").innerText = selected.length * 100;
+        };
+        grid.appendChild(div);
+    });
+}
+
+function toPayment(){
+    if(selected.length === 0) return alert("Select Event First");
+    go('payment');
+}
+
+function upiStart(){
+    const amt = selected.length * 100;
+    const url = `upi://pay?pa=${UPI_ID}&pn=NEC&am=${amt}&cu=INR`;
+    const start = Date.now();
+    document.getElementById("upiFailMsg").style.display = "none";
+    window.location.href = url;
+    setTimeout(() => {
+        if(Date.now() - start < 1500) document.getElementById("upiFailMsg").style.display = "block";
+        else document.getElementById("upiConfirmationBox").style.display = "block";
+    }, 1000);
+}
+
+function sendSMS(method, ref, callback) {
+    const msg = `NEC FEST: ${student.name} (${student.roll}). Pay: ${method}, Ref: ${ref}`;
+    window.location.href = `sms:${SMS_NO}?body=${encodeURIComponent(msg)}`;
+    setTimeout(callback, 2000);
+}
+
+function upiConfirm(){
+    const utr = document.getElementById("utr").value.trim();
+    if(utr.length < 6) return alert("Enter valid ID");
+    sendSMS("UPI", utr, () => finish("UPI", utr));
+}
+
+function cashPay(){
+    if(confirm("Redirect to SMS for cash?")) {
+        sendSMS("CASH", "OFFLINE_PAY", () => finish("CASH", "OFFLINE_PAY"));
+    }
+}
+
+function finish(method, ref){
+    const faculty = document.getElementById("facSessionName").value || "Self";
+    const regData = {
+        ...student,
+        events: selected.map(i => config.events[i]).join(", "),
+        amount: selected.length * 100,
+        method, reference: ref, faculty, date: new Date().toLocaleString()
+    };
+    let regs = JSON.parse(localStorage.getItem("regs") || "[]");
+    regs.push(regData);
+    localStorage.setItem("regs", JSON.stringify(regs));
+    
+    document.getElementById("ticket").innerHTML = `
+        <div class="ticket-header">
+            <h3 style="color:#0a1a5c; font-family:Orbitron;">${config.mainTitle}</h3>
+            <p style="font-size:0.8rem; color:#666">Scheduled: ${config.eventDate}</p>
+        </div>
+        <div class="ticket-body">
+            <p><b>Name:</b> ${regData.name}</p>
+            <p><b>Roll:</b> ${regData.roll}</p>
+            <p><b>Branch:</b> ${regData.branch} (${regData.year})</p>
+            <p><b>Events:</b> <span style="color:#d97706">${regData.events}</span></p>
+            <p><b>Status:</b> Paid via ${method}</p>
+            <p><b>Ref:</b> ${ref}</p>
+        </div>
+        <div class="ticket-footer"><p>Issued: ${regData.date}</p></div>
+    `;
+    confetti({ particleCount: 150, spread: 70 });
+    go('success');
+}
+
+function loadRegs(){
+    const regs = JSON.parse(localStorage.getItem("regs") || "[]");
+    const term = document.getElementById("search").value.toLowerCase();
+    const table = document.getElementById("regTable"); table.innerHTML = "";
+    regs.forEach((r, i) => {
+        if(r.roll.toLowerCase().includes(term) || r.name.toLowerCase().includes(term)){
+            table.innerHTML += `<tr><td>${r.name}</td><td>${r.roll}</td><td>${r.events}</td><td>${r.reference}</td><td>${r.faculty}</td><td><button class="delete" onclick="delReg(${i})">X</button></td></tr>`;
+        }
+    });
+    document.getElementById("countSt").innerText = regs.length;
+}
+
+function delReg(i){
+    if(confirm("Delete?")) {
+        let regs = JSON.parse(localStorage.getItem("regs")); regs.splice(i, 1);
+        localStorage.setItem("regs", JSON.stringify(regs)); loadRegs();
+    }
+}
+
+function exportCSV() {
+    const regs = JSON.parse(localStorage.getItem("regs") || "[]");
+    if (regs.length === 0) return alert("No data");
+    let csvContent = "Name,Roll,Branch,Year,Events,Method,Ref,Amount,Faculty,Date\n";
+    regs.forEach(r => {
+        csvContent += `"${r.name}","${r.roll}","${r.branch}","${r.year}","${r.events}","${r.method}","${r.reference}","${r.amount}","${r.faculty}","${r.date}"\n`;
+    });
+    const encodedUri = encodeURI("data:text/csv;charset=utf-8,\uFEFF" + csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "NEC_TechFest_Data.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+</script>
+</body>
+</html>
